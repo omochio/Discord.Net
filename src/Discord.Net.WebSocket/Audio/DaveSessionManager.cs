@@ -139,7 +139,7 @@ internal sealed class DaveSessionManager : IDisposable
         ReadOnlyMemory<byte> payload
     )
     {
-        using var welcomeResult = _session.ProcessWelcome(payload, _decryptors.Keys);
+        using var welcomeResult = _session.ProcessWelcome(payload, GetRecognizedUserIds());
 
         if (welcomeResult.IsNull)
         {
@@ -161,22 +161,32 @@ internal sealed class DaveSessionManager : IDisposable
 
     private async ValueTask OnDaveMLSProposalsAsync(ReadOnlyMemory<byte> payload)
     {
+        var recognizedUserIds = GetRecognizedUserIds();
+
         if (_logger.Level is LogSeverity.Debug)
         {
             await _logger.DebugAsync(
-                $"Processing MLS proposal; our users: [{string.Join(", ", _decryptors.Keys)}]"
+                $"Processing MLS proposal; our users: [{string.Join(", ", recognizedUserIds)}]"
             );
         }
 
         using var result = _session.ProcessProposals(
             payload,
-            _decryptors.Keys
+            recognizedUserIds
         );
 
         await _logger.DebugAsync($"Processed dave MLS proposals, has data?: {result.HasData}");
 
         if (result.HasData)
             await SendMLSCommitWelcomeAsync(result.ToMemory());
+    }
+
+    private HashSet<ulong> GetRecognizedUserIds()
+    {
+        return new HashSet<ulong>(_decryptors.Keys)
+        {
+            SelfUserId
+        };
     }
 
     private async ValueTask OnDaveMLSAnnounceCommitTransactionAsync(ushort transitionId, ReadOnlyMemory<byte> payload)
