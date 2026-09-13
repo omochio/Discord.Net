@@ -4,12 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Discord.Net.Commands/Discord.Net.Commands.csproj" />
     <ProjectReference Include="../../src/Discord.Net.Core/Discord.Net.Core.csproj" />
     <ProjectReference Include="../../src/Discord.Net.Rest/Discord.Net.Rest.csproj" />
     <ProjectReference Include="../../src/Discord.Net.WebSocket/Discord.Net.WebSocket.csproj" />
+    <ProjectReference Include="../../tools/Discord.Net.Dave/Discord.Net.Dave.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />

@@ -28,6 +28,7 @@ internal static class Utils
         if (!id.TryFormat(span, out var sz))
             throw new InvalidOperationException();
 
+        span[sz] = 0;
         str = new(ptr, sz);
 
         return new((IntPtr)ptr);
