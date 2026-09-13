@@ -156,6 +156,8 @@ namespace Discord.Audio
                     return;
                 case (not false, true):
                     _dave = new(this, _clientId);
+                    foreach (var userId in _streams.Keys)
+                        _dave.AddUser(userId);
                     await _audioLogger.DebugAsync("libdave enabled");
                     return;
                 case (false, _):

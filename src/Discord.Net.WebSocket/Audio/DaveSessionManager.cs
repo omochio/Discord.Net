@@ -24,6 +24,7 @@ internal sealed class DaveSessionManager : IDisposable
     private readonly DaveSession _session;
 
     private readonly ConcurrentDictionary<ulong, DaveDecryptor> _decryptors;
+    private readonly ConcurrentDictionary<ulong, byte> _recognizedUserIds;
     private readonly AudioClient _client;
     private readonly ConcurrentDictionary<ushort, ushort> _preparedTransitions;
 
@@ -33,6 +34,7 @@ internal sealed class DaveSessionManager : IDisposable
     {
         _client = client;
         _decryptors = [];
+        _recognizedUserIds = [];
         _preparedTransitions = [];
         _session = Dave.CreateSession();
         Encryptor = Dave.CreateEncryptor();
@@ -65,6 +67,8 @@ internal sealed class DaveSessionManager : IDisposable
 
     public DaveDecryptor GetOrCreateDecryptor(ulong userId)
     {
+        AddUser(userId);
+
         var decryptor = _decryptors.GetOrAdd(
             userId,
             _ => Dave.CreateDecryptor()
@@ -79,6 +83,9 @@ internal sealed class DaveSessionManager : IDisposable
         return decryptor;
     }
 
+    public void AddUser(ulong userId)
+        => _recognizedUserIds.TryAdd(userId, 0);
+
     public void AssignSsrc(uint ssrc)
     {
         // TODO: hardcode opus here?
@@ -87,6 +94,8 @@ internal sealed class DaveSessionManager : IDisposable
 
     public bool RemoveUser(ulong id)
     {
+        _recognizedUserIds.TryRemove(id, out _);
+
         if (_decryptors.TryRemove(id, out var decryptor))
         {
             decryptor.Dispose();
@@ -183,7 +192,7 @@ internal sealed class DaveSessionManager : IDisposable
 
     private HashSet<ulong> GetRecognizedUserIds()
     {
-        return new HashSet<ulong>(_decryptors.Keys)
+        return new HashSet<ulong>(_recognizedUserIds.Keys)
         {
             SelfUserId
         };
